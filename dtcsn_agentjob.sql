@@ -32,6 +32,7 @@ DECLARE @ScheduleName       SYSNAME      = N'dtcSN – stuendlich'
 DECLARE @ScheduleStartTime  INT          = 060000   -- 06:00:00 Uhr
 DECLARE @ScheduleEndTime    INT          = 220000   -- 22:00:00 Uhr
 DECLARE @FreqInterval       INT          = 60       -- Minuten zwischen den Laeufen
+DECLARE @OwnerLogin         SYSNAME      = N'sa'    -- Job-Owner Login (anpassen falls sa deaktiviert ist)
 DECLARE @OperatorName       SYSNAME      = N''      -- Operator fuer Fehlerbenachrichtigung (leer = keine)
 
 -- ── Existenz pruefen ───────────────────────────────────────
@@ -49,7 +50,7 @@ EXEC msdb.dbo.sp_add_job
     @enabled              = 1,
     @description          = @JobDescription,
     @category_name        = @JobCategory,
-    @owner_login_name     = N'sa',
+    @owner_login_name     = @OwnerLogin,
     @notify_level_eventlog= 2,   -- Bei Fehler ins Windows Event Log schreiben
     @job_id               = @JobID OUTPUT
 

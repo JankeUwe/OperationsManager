@@ -24,13 +24,39 @@ GO
 -- ============================================================
 
 -- ── Datenbank ──────────────────────────────────────────────
+-- Datei-Pfade werden automatisch aus den SQL-Server-Standardpfaden
+-- ermittelt. Kein hardcodierter Laufwerksbuchstabe notwendig.
+DECLARE @DataPath NVARCHAR(512)
+DECLARE @LogPath  NVARCHAR(512)
+DECLARE @Sql      NVARCHAR(MAX)
+
+-- Standardpfad fuer Datendateien
+SELECT @DataPath = CAST(SERVERPROPERTY('InstanceDefaultDataPath') AS NVARCHAR(512))
+-- Standardpfad fuer Logdateien
+SELECT @LogPath  = CAST(SERVERPROPERTY('InstanceDefaultLogPath')  AS NVARCHAR(512))
+
+-- Trailing Backslash sicherstellen
+IF RIGHT(@DataPath, 1) <> N'\' SET @DataPath = @DataPath + N'\'
+IF RIGHT(@LogPath,  1) <> N'\' SET @LogPath  = @LogPath  + N'\'
+
+SET @Sql = N'
 CREATE DATABASE [dtcSN]
     CONTAINMENT = NONE
     ON PRIMARY
-    ( NAME = N'dtcSN',     FILENAME = N'V:\Daten\SQL\dtcSN.mdf',     SIZE = 131072KB, MAXSIZE = UNLIMITED, FILEGROWTH = 131072KB )
+    ( NAME = N''dtcSN'',
+      FILENAME = N''' + @DataPath + N'dtcSN.mdf'',
+      SIZE = 131072KB, MAXSIZE = UNLIMITED, FILEGROWTH = 131072KB )
     LOG ON
-    ( NAME = N'dtcSN_log', FILENAME = N'W:\Daten\SQL\dtcSN_log.ldf', SIZE =  65536KB, MAXSIZE = 2048GB,    FILEGROWTH =  65536KB )
-    WITH CATALOG_COLLATION = DATABASE_DEFAULT, LEDGER = OFF
+    ( NAME = N''dtcSN_log'',
+      FILENAME = N''' + @LogPath  + N'dtcSN_log.ldf'',
+      SIZE = 65536KB, MAXSIZE = 2048GB, FILEGROWTH = 65536KB )
+    WITH CATALOG_COLLATION = DATABASE_DEFAULT, LEDGER = OFF'
+
+PRINT 'Erstelle dtcSN:'
+PRINT '  Data : ' + @DataPath + 'dtcSN.mdf'
+PRINT '  Log  : ' + @LogPath  + 'dtcSN_log.ldf'
+
+EXEC sys.sp_executesql @Sql
 GO
 ALTER DATABASE [dtcSN] SET COMPATIBILITY_LEVEL = 160
 GO
@@ -921,7 +947,7 @@ BEGIN CATCH
         DEALLOCATE col_cursor
     END
     DROP TABLE #MissingColumns
-    THROW;
+    ;THROW;
 END CATCH
 
 CLOSE col_cursor
@@ -1031,7 +1057,7 @@ BEGIN CATCH
         CLOSE db_cursor
         DEALLOCATE db_cursor
     END
-    THROW;
+    ;THROW;
 END CATCH
 
 CLOSE db_cursor
@@ -1137,7 +1163,7 @@ BEGIN CATCH
         CLOSE db_cursor
         DEALLOCATE db_cursor
     END
-    THROW;
+    ;THROW;
 END CATCH
 
 CLOSE db_cursor
@@ -1164,7 +1190,7 @@ BEGIN TRY
         AND ME.ManagedEntityTypeRowId = 62
 END TRY
 BEGIN CATCH
-    THROW;
+    ;THROW;
 END CATCH
 GO
 
@@ -1253,7 +1279,7 @@ BEGIN CATCH
         CLOSE db_cursor
         DEALLOCATE db_cursor
     END
-    THROW;
+    ;THROW;
 END CATCH
 
 CLOSE db_cursor
@@ -1362,7 +1388,7 @@ BEGIN TRY
 END TRY
 BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK TRAN
-    THROW;
+    ;THROW;
 END CATCH
 GO
 

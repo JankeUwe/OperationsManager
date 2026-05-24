@@ -442,7 +442,7 @@ BEGIN TRY
 END TRY
 BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK TRAN
-    THROW;
+    ;THROW;
 END CATCH
 GO
 PRINT '    OK  SetCaseSensitive (+ TRY/CATCH)'
@@ -568,7 +568,7 @@ BEGIN CATCH
         CLOSE db_cursor
         DEALLOCATE db_cursor
     END
-    THROW;
+    ;THROW;
 END CATCH
 
 CLOSE db_cursor
@@ -665,7 +665,7 @@ BEGIN CATCH
         CLOSE db_cursor
         DEALLOCATE db_cursor
     END
-    THROW;
+    ;THROW;
 END CATCH
 
 CLOSE db_cursor
@@ -690,7 +690,7 @@ BEGIN TRY
         AND ME.ManagedEntityTypeRowId = 62
 END TRY
 BEGIN CATCH
-    THROW;
+    ;THROW;
 END CATCH
 GO
 PRINT '    OK  _02b_GetWindowsOSForAllComputerEntries (Cursor -> set-basiert + TRY/CATCH)'
@@ -771,7 +771,7 @@ BEGIN CATCH
         CLOSE db_cursor
         DEALLOCATE db_cursor
     END
-    THROW;
+    ;THROW;
 END CATCH
 
 CLOSE db_cursor
@@ -887,7 +887,7 @@ BEGIN CATCH
         DEALLOCATE col_cursor
     END
     DROP TABLE #MissingColumns
-    THROW;
+    ;THROW;
 END CATCH
 
 CLOSE col_cursor
