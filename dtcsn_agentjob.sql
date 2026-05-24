@@ -155,10 +155,36 @@ EXEC msdb.dbo.sp_add_jobstep
     @subsystem            = N'TSQL',
     @database_name        = @DBName,
     @command              = N'EXEC [dbo].[_03a_GetPropertiesForAllSQLDBS]',
-    @on_success_action    = 1,   -- Erfolgreich beenden
+    @on_success_action    = 3,   -- Weiter mit naechstem Step
     @on_fail_action       = 2,   -- Abbrechen mit Fehler
     @retry_attempts       = 0,
     @retry_interval       = 0
+
+-- ── Step 9: Alert-History importieren ─────────────────────
+EXEC msdb.dbo.sp_add_jobstep
+    @job_id               = @JobID,
+    @step_name            = N'09 – Alert-History importieren',
+    @step_id              = 9,
+    @subsystem            = N'TSQL',
+    @database_name        = @DBName,
+    @command              = N'EXEC [dbo].[_04_ImportAlerts] @RetentionDays = 90',
+    @on_success_action    = 3,   -- Weiter mit naechstem Step
+    @on_fail_action       = 2,   -- Abbrechen mit Fehler
+    @retry_attempts       = 1,
+    @retry_interval       = 2
+
+-- ── Step 10: Maintenance-History importieren ───────────────
+EXEC msdb.dbo.sp_add_jobstep
+    @job_id               = @JobID,
+    @step_name            = N'10 – Maintenance-History importieren',
+    @step_id              = 10,
+    @subsystem            = N'TSQL',
+    @database_name        = @DBName,
+    @command              = N'EXEC [dbo].[_05_ImportMaintenance] @RetentionDays = 365',
+    @on_success_action    = 1,   -- Erfolgreich beenden
+    @on_fail_action       = 2,   -- Abbrechen mit Fehler
+    @retry_attempts       = 1,
+    @retry_interval       = 2
 
 -- ── Startstep setzen ──────────────────────────────────────
 EXEC msdb.dbo.sp_update_job
@@ -203,7 +229,7 @@ PRINT '====================================================='
 PRINT 'Job erfolgreich erstellt.'
 PRINT 'Name     : ' + @JobName
 PRINT 'Datenbank: ' + @DBName
-PRINT 'Steps    : 8'
+PRINT 'Steps    : 10'
 PRINT ''
 PRINT 'Hinweis: Job laeuft als SQL Agent Service Account.'
 PRINT 'Sicherstellen, dass dieser Account Lesezugriff auf'

@@ -229,3 +229,55 @@ GO
 
 PRINT 'Funktionen angelegt: SQLPropList, ComputerPropList'
 GO
+
+-- ============================================================
+-- Alert- und Maintenance-Views
+-- Gleiche Namen wie die ehemaligen OperationsManagerDW-Views,
+-- damit die SQLNow-Handler (AlertsOperationsManagerDW.ashx,
+-- Maintain.ashx) unveraendert weiterarbeiten.
+-- ============================================================
+
+-- ── vAlertsOperationsManagerDW ─────────────────────────────
+-- Ersetzt die gleichnamige View aus der OperationsManagerDW-DB.
+-- Liefert importierte Alerts aus dbo.AlertHistory.
+IF OBJECT_ID('dbo.vAlertsOperationsManagerDW', 'V') IS NOT NULL
+    DROP VIEW dbo.vAlertsOperationsManagerDW
+GO
+CREATE VIEW [dbo].[vAlertsOperationsManagerDW]
+AS
+    SELECT
+        [ID]                 AS AlertGuid,        -- Handler erwartet AlertGuid als PK
+        [ManagedEntityRowId],
+        [Category],
+        [DisplayName],
+        [Alertname],
+        [AlertDescription],
+        [RaisedDateTime],
+        [Severity],
+        [Priority]           AS priority,
+        [RepeatCount]
+    FROM [dbo].[AlertHistory]
+GO
+
+-- ── vMaintenanceHistory ────────────────────────────────────
+-- Ersetzt die gleichnamige View aus der OperationsManagerDW-DB.
+-- Liefert importierte Wartungsfenster aus dbo.MaintenanceHistory.
+IF OBJECT_ID('dbo.vMaintenanceHistory', 'V') IS NOT NULL
+    DROP VIEW dbo.vMaintenanceHistory
+GO
+CREATE VIEW [dbo].[vMaintenanceHistory]
+AS
+    SELECT
+        [ID],
+        [ManagedEntityRowId],
+        [DisplayName],
+        [StartDateTime],
+        [EndDateTime],
+        [ScheduledEndDateTime],
+        [UserId],
+        [Comment]            AS comment
+    FROM [dbo].[MaintenanceHistory]
+GO
+
+PRINT 'Views angelegt: vAlertsOperationsManagerDW, vMaintenanceHistory'
+GO

@@ -780,6 +780,61 @@ CREATE TABLE [dbo].[Support]
 ) ON [PRIMARY]
 GO
 
+-- ── AlertHistory ───────────────────────────────────────────
+-- Importierte SCOM-Alerts, gefiltert auf SQL-relevante Objekte.
+-- Retention: konfigurierbar in _04_ImportAlerts (Standard 90 Tage).
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[AlertHistory]
+(
+    [ID]                    BIGINT        IDENTITY(1,1) NOT NULL,
+    [AlertGuid]             NVARCHAR(50)  NOT NULL,           -- SCOM Alert-GUID (Deduplizierung)
+    [ManagedEntityRowId]    BIGINT        NOT NULL,           -- FK -> SQLServer / Computer
+    [Category]              NVARCHAR(256) NULL,
+    [DisplayName]           NVARCHAR(256) NULL,               -- Managed Entity Display Name
+    [Alertname]             NVARCHAR(256) NULL,
+    [AlertDescription]      NVARCHAR(MAX) NULL,
+    [RaisedDateTime]        DATETIME      NULL,
+    [Severity]              NVARCHAR(50)  NULL,               -- Error / Warning / Information
+    [Priority]              NVARCHAR(50)  NULL,
+    [RepeatCount]           INT           NULL,
+    [Imported]              DATETIME      NOT NULL,
+    CONSTRAINT [PK_AlertHistory] PRIMARY KEY CLUSTERED ([ID] ASC)
+        WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+              ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
+        ON [PRIMARY],
+    CONSTRAINT [UQ_AlertHistory_Guid] UNIQUE NONCLUSTERED ([AlertGuid])
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+-- ── MaintenanceHistory ─────────────────────────────────────
+-- Importierte SCOM-Wartungsfenster, gefiltert auf SQL-Hosts.
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[MaintenanceHistory]
+(
+    [ID]                    BIGINT        IDENTITY(1,1) NOT NULL,
+    [MaintenanceRowId]      BIGINT        NOT NULL,           -- SCOM MaintenanceModeHistory PK
+    [ManagedEntityRowId]    BIGINT        NOT NULL,           -- FK -> Computer
+    [DisplayName]           NVARCHAR(256) NULL,
+    [StartDateTime]         DATETIME      NULL,
+    [EndDateTime]           DATETIME      NULL,
+    [ScheduledEndDateTime]  DATETIME      NULL,
+    [UserId]                NVARCHAR(256) NULL,
+    [Comment]               NVARCHAR(MAX) NULL,
+    [Imported]              DATETIME      NOT NULL,
+    CONSTRAINT [PK_MaintenanceHistory] PRIMARY KEY CLUSTERED ([ID] ASC)
+        WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+              ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
+        ON [PRIMARY],
+    CONSTRAINT [UQ_MaintenanceHistory_RowId] UNIQUE NONCLUSTERED ([MaintenanceRowId])
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
 -- ── Default-Constraints ────────────────────────────────────
 ALTER TABLE [dbo].[Computer]    ADD CONSTRAINT [DF_Computer_Inserted]                DEFAULT (GETDATE()) FOR [Inserted]
 GO
@@ -789,7 +844,19 @@ ALTER TABLE [dbo].[ManagedEntityDatabaseType] ADD CONSTRAINT [DF_ManagedEntityDa
 GO
 ALTER TABLE [dbo].[SQLDatabase] ADD CONSTRAINT [DF_SQLDatabase_Inserted]             DEFAULT (GETDATE()) FOR [Inserted]
 GO
-ALTER TABLE [dbo].[SQLServer]   ADD CONSTRAINT [DF_SQLServer_Inserted]               DEFAULT (GETDATE()) FOR [Inserted]
+ALTER TABLE [dbo].[SQLServer]      ADD CONSTRAINT [DF_SQLServer_Inserted]      DEFAULT (GETDATE()) FOR [Inserted]
+GO
+ALTER TABLE [dbo].[AlertHistory]   ADD CONSTRAINT [DF_AlertHistory_Imported]   DEFAULT (GETDATE()) FOR [Imported]
+GO
+ALTER TABLE [dbo].[MaintenanceHistory] ADD CONSTRAINT [DF_MaintenanceHistory_Imported] DEFAULT (GETDATE()) FOR [Imported]
+GO
+
+-- Performance-Indizes fuer Alert/Maintenance-Abfragen
+CREATE NONCLUSTERED INDEX [IX_AlertHistory_ManagedEntityRowId]
+    ON [dbo].[AlertHistory] ([ManagedEntityRowId]) INCLUDE ([RaisedDateTime], [Severity])
+GO
+CREATE NONCLUSTERED INDEX [IX_MaintenanceHistory_ManagedEntityRowId]
+    ON [dbo].[MaintenanceHistory] ([ManagedEntityRowId]) INCLUDE ([StartDateTime])
 GO
 
 -- ── Foreign Keys ───────────────────────────────────────────
