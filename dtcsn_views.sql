@@ -88,6 +88,7 @@ AS
     SELECT
         DB.ManagedEntityRowId,
         DB.TopLevelHostManagedEntityRowId,
+        ''                                      AS symbol,
         DB.DisplayName                          AS DatabaseName,
         DB.Owner,
         DB.RecoveryModel,
@@ -113,6 +114,7 @@ AS
     SELECT
         DB.ManagedEntityRowId                          AS ID,
         DB.ManagedEntityRowId,
+        ''                                             AS symbol,
         DB.TopLevelHostManagedEntityRowId,
         DB.DisplayName                                 AS DatabaseName,
         SS.PrincipalName,
