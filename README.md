@@ -29,5 +29,6 @@ T-SQL Reporting-Schicht über Microsoft System Center Operations Manager (SCOM) 
 
 ## Mehr Informationen
 
+- Projektseite: [powershelldba.de/operationsmanager](https://www.powershelldba.de/operationsmanager/)
 - Website: [www.powershelldba.de](https://www.powershelldba.de)
 - Entwickler: Uwe Janke, Senior IT-Spezialist / SQL Server DBA
